@@ -15,7 +15,7 @@ function isValidCEP(cep) {
   return regex.test(cep);
 }
 
-function handleStep1() {
+async function handleStep1() {
   const name = document.getElementById('name').value;
   const email = document.getElementById('email').value;
   const cep = document.getElementById('cep').value;
@@ -37,10 +37,22 @@ function handleStep1() {
     return;
   }
 
-  localStorage.setItem('churrascoData', JSON.stringify({ name, email, cep, consent }));
-  errorDiv.textContent = '';
-  document.getElementById('step1').style.display = 'none';
-  document.getElementById('step2').style.display = 'block';
+  try {
+    const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const cepData = await response.json();
+
+    if (cepData.erro) {
+      errorDiv.textContent = 'CEP inválido. Por favor, insira um CEP válido.';
+      return;
+    }
+
+    localStorage.setItem('churrascoData', JSON.stringify({ name, email, cep, consent, cepData }));
+    errorDiv.textContent = '';
+    document.getElementById('step1').style.display = 'none';
+    document.getElementById('step2').style.display = 'block';
+  } catch (error) {
+    errorDiv.textContent = 'Erro ao buscar informações do CEP.';
+  }
 }
 
 function handleStep2() {
